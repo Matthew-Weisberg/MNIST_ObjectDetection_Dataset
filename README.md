@@ -23,9 +23,10 @@ This repository contains code to generate an **object detection dataset** from t
 
 ## Example Image
 
-Here is an example of a generated image with bounding boxes around the digits:
+Here are two examples of a generated image with bounding boxes around the digits:
 
-![Example Image](https://github.com/user-attachments/assets/125a3c61-4ab9-45f5-9c21-57353bd9b998)
+![Example Image 1](https://github.com/user-attachments/assets/cabeb3e0-b898-441d-8bc1-2af4f27b797b) ![Example Image 2](https://github.com/user-attachments/assets/529f151a-03e7-402b-aa8c-3959668420ea)
+
 
 ## Getting Started
 
