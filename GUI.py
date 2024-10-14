@@ -21,6 +21,7 @@ item_dict = {
 }
 
 sample_images = []
+output_directory = ""
 
 # Function to update the dictionary whenever the user changes the value
 def update_value(key, var):
@@ -32,9 +33,9 @@ def print_dict():
 
 # Function to open a folder selection dialog and update the label
 def choose_folder():
-    folder_selected = filedialog.askdirectory()  # Open folder selection dialog
-    if folder_selected:  # If a folder is chosen, update the label and store the path
-        folder_var.set(f"Output Directory: {folder_selected}")
+    output_directory = filedialog.askdirectory()  # Open folder selection dialog
+    if output_directory:  # If a folder is chosen, update the label and store the path
+        folder_var.set(f"Output Directory: {output_directory}")
 
 if __name__ == "__main__":
     # Create the main window
@@ -83,14 +84,14 @@ if __name__ == "__main__":
     folder_frame = tk.Frame(buttons_frame)
     folder_frame.pack(anchor='w', pady=5)  # Add vertical space between rows
 
-    folder_button = tk.Button(buttons_frame, text="Choose Folder", font=gui_font, command=choose_folder)
+    folder_button = tk.Button(buttons_frame, text="Select Output Directory", font=gui_font, command=choose_folder)
     folder_button.pack(side=tk.LEFT, padx=10)
 
     # Create a StringVar to hold the folder path text
     folder_var = tk.StringVar(value="No folder location chosen")
 
     # Create the "Print Dictionary" button under the text boxes
-    print_button = tk.Button(buttons_frame, text="Print Dictionary", font=gui_font, command=print_dict)
+    print_button = tk.Button(buttons_frame, text="Generate Image Previews", font=gui_font, command=print_dict)
     print_button.pack(side=tk.LEFT, padx=10)  # Add padding below the button
 
     # Create a label to display the folder path
