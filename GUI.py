@@ -4,11 +4,11 @@ from tkinter import filedialog
 from tkinter import ttk
 
 # Hardcoded GUI settings
-gui_width = 1200
-gui_height = 600
-gui_font_name = 'Microsoft JhengHei'
-input_fields_font_name = "Cascadia Code Light"
-font_size = 12
+GUI_WIDTH = 1200
+GUI_HEIGHT = 600
+GUI_FONT_NAME = 'Microsoft JhengHei'
+INPUT_FIELDS_FONT_NAME = "Cascadia Code Light"
+FONT_SIZE = 12
 
 # Hardcoded dictionary
 item_dict = {
@@ -48,19 +48,19 @@ if __name__ == "__main__":
     # Create the main window
     root = tk.Tk()
     root.title("MNIST Object Detection Dataset Generator")
-    root.geometry(f"{gui_width}x{gui_height}")  # Set the window size to allow space for two halves
-    gui_font = tkFont.Font(family=gui_font_name, size=font_size)
-    input_font = tkFont.Font(family=input_fields_font_name, size=font_size)
+    root.geometry(f"{GUI_WIDTH}x{GUI_HEIGHT}")  # Set the window size to allow space for two halves
+    gui_font = tkFont.Font(family=GUI_FONT_NAME, size=FONT_SIZE)
+    input_font = tkFont.Font(family=INPUT_FIELDS_FONT_NAME, size=FONT_SIZE)
 
     # Create the left and right frames
-    left_frame = tk.Frame(root, width=gui_width/2, height=gui_height)  # Left half for content
+    left_frame = tk.Frame(root, width=GUI_WIDTH/2, height=GUI_HEIGHT)  # Left half for content
     left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-    right_frame = tk.Frame(root, width=gui_width/2, height=gui_height, bg='light gray')  # Right half is empty
+    right_frame = tk.Frame(root, width=GUI_WIDTH/2, height=GUI_HEIGHT, bg='light gray')  # Right half is empty
     right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
     # Create a frame to hold the vertical line between the left and right frames
-    center_frame = tk.Frame(root, width=1, height=gui_height, bg='gray')  # Black vertical line
+    center_frame = tk.Frame(root, width=1, height=GUI_HEIGHT, bg='gray')  # Black vertical line
     center_frame.place(relx=0.5, rely=0, relheight=1)  # Place in the center and span the entire height
 
     # Center the content in the left frame
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     content_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)  # Center content in the left half
 
     # Create a label for the title in the left side
-    title_label = tk.Label(content_frame, text="MNIST Object Detection Dataset Generator", font=(gui_font_name, font_size+4, 'bold'))
+    title_label = tk.Label(content_frame, text="MNIST Object Detection Dataset Generator", font=(GUI_FONT_NAME, FONT_SIZE+4, 'bold'))
     title_label.pack(pady=20)  # Title with some padding
 
     # Iterate through the dictionary and create a label and entry for each item on the same line
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     print_button.pack(side=tk.LEFT, padx=10)  # Add padding below the button
 
     # Create a label to display the folder path
-    folder_label = tk.Label(content_frame, textvariable=folder_str, font=(input_fields_font_name, 8))
+    folder_label = tk.Label(content_frame, textvariable=folder_str, font=(INPUT_FIELDS_FONT_NAME, 8))
     folder_label.pack(pady=10)
 
     progress_str = tk.StringVar(value="")
