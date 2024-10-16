@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import font as tkFont
 from tkinter import filedialog
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 from utils import *
 
@@ -23,14 +24,22 @@ item_dict = {
     "Max Object Scaling"      : "5"
 }
 
+cmap = {0 : [180  , 20   , 20  ],
+        1 : [230  , 125  , 0   ],
+        2 : [240  , 240  , 0   ],
+        3 : [125  , 220  , 0   ],
+        4 : [0    , 255  , 0   ],
+        5 : [0    , 210  , 210 ],
+        6 : [0    , 125  , 220 ],
+        7 : [0    , 0    , 220 ],
+        8 : [110  , 0    , 220 ],
+        9 : [200  , 0    , 200 ]}
+
 sample_images = []
 output_directory = ""
 mnist_ready = False
-
-
+last_corner_coordinates = None
 X, Y = [], []
-
-CORNER_COORINATES = False
 
 # Function to update the dictionary whenever the user changes the value
 def update_value(key, var):
@@ -53,10 +62,10 @@ def choose_folder():
     global output_directory
     output_directory = filedialog.askdirectory()  # Open folder selection dialog
     if output_directory:  # If a folder is chosen, update the label and store the path
-        error_label.config(text=f"Output Directory:\n{output_directory}")
-        error_label.pack(anchor='w', padx=10, pady=10)
+        folder_str.set(f"Output Directory:\n{output_directory}")
+        #folder_label.pack(anchor='w', pady=5)
 
-def check_dict_values_for_numbers(item_dict):
+def check_inputs(item_dict):
     error_str.set("")
     for key, value in item_dict.items():
         try:
@@ -82,22 +91,57 @@ def check_dict_values_for_numbers(item_dict):
 
 # Function to update progress bar to 100% when generating previews
 def generate_previews():
-    global mnist_ready, X, Y, item_dict
+    global mnist_ready, X, Y, item_dict, last_corner_coordinates
+    
+    corner_coordinates = bool(cb1_var.get())
 
-    if not mnist_ready:
-        preprocess_mnist()
-        mnist_ready = True
+    img_label.pack_forget()
+    img_frame.pack_forget()
+    
+    if corner_coordinates != last_corner_coordinates:
+        progress_var.set(0)
+        progress_str.set(f"Preprocessing MNIST Dataset")
+        preprocess_mnist(corner_coordinates=corner_coordinates)
+        last_corner_coordinates = corner_coordinates
 
-    inputs_ready = check_dict_values_for_numbers(item_dict)
+    inputs_ready = check_inputs(item_dict)
 
     if inputs_ready:
         right_content_frame.config(bg='light gray')
+
+        image, added_objects = create_image(X,
+                                            Y,
+                                            image_size=(int(item_dict["Image Height"]), int(item_dict["Image Width"])),
+                                            noise_intensity=int(item_dict["Noise Intensity (0-256)"]),
+                                            grid_rows=int(item_dict["Image Grid Rows"]),
+                                            grid_cols=int(item_dict["Image Grid Cols"]),
+                                            max_objects=int(item_dict["Max Number of Objects"]),
+                                            max_scaling=float(item_dict['Max Object Scaling']),
+                                            add_gridlines=True,
+                                            allow_overlap=False,
+                                            corner_coordinates=corner_coordinates)
         
+        image = add_bboxes_to_image(image, 
+                                    added_objects, 
+                                    cmap,
+                                    corner_coordinates=corner_coordinates)
 
-    print(X.shape, Y.shape)
-    print_dict()  # Optionally print the dictionary to the console
+        # Convert NumPy array to PIL Image
+        img = Image.fromarray(image)
+    
+        # Convert the PIL Image to ImageTk object
+        imgtk = ImageTk.PhotoImage(image=img)
 
-def preprocess_mnist():
+        img_frame.pack()
+
+        img_label.config(image=imgtk)
+        img_label.image = imgtk
+        img_label.pack()
+
+        print(image.shape)
+        print(added_objects)
+
+def preprocess_mnist(corner_coordinates):
     global X, Y, mnist_ready
 
     progress_str.set(f"Preprocessing MNIST Dataset")
@@ -110,7 +154,7 @@ def preprocess_mnist():
 
     for i in range(n):
         X_bboxes.append(find_bbox(X[i], 
-                                  corner_coordinates=CORNER_COORINATES))
+                                  corner_coordinates=corner_coordinates))
         if i % update_iter == 0 and i != 0:
             progress_var.set(n / i)
 
@@ -197,14 +241,14 @@ if __name__ == "__main__":
     folder_button.pack(side=tk.LEFT, padx=10)
 
     # Create a StringVar to hold the folder path text
-    folder_str = tk.StringVar(value="No folder location chosen")
+    folder_str = tk.StringVar(value="No folder location chosen\n")
 
     # Create the "Generate Image Previews" button
     print_button = tk.Button(buttons_frame, text="Generate Image Previews", font=gui_font, command=generate_previews)
     print_button.pack(side=tk.LEFT, padx=10)  # Add padding below the button
 
     # Create a label to display the folder path
-    folder_label = tk.Label(left_content_frame, textvariable=folder_str, font=(INPUT_FIELDS_FONT_NAME, 8))
+    folder_label = tk.Label(left_content_frame, textvariable=folder_str, justify='left', font=(INPUT_FIELDS_FONT_NAME, 8))
     folder_label.pack(anchor='w', pady=5)
 
     progress_str = tk.StringVar(value="")
@@ -220,7 +264,12 @@ if __name__ == "__main__":
 
     error_str = tk.StringVar(value="")
     error_label = tk.Label(right_content_frame, textvariable=error_str, justify='left', font=gui_font, borderwidth=1, bg="lightcoral", fg="black")
-    
-    preprocess_mnist()
+
+    # Create a frame to display the image
+    img_frame = tk.Frame(right_content_frame)#, width=image.shape[1], height=image.shape[0])
+
+    # Create a label to place the image inside the frame
+    img_label = tk.Label(img_frame)
+
     # Run the application
     root.mainloop()

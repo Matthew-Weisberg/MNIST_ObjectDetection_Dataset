@@ -49,7 +49,6 @@ def to_center_coordinates(x_min, y_min, x_max, y_max):
     
     return [center_x, center_y, width, height]
 
-
 def to_corner_coordinates(center_x, center_y, width, height):
     """
     Definition:
@@ -93,8 +92,8 @@ def find_bbox(object,
     coords[:, 0] = coords[:, 0] / object.shape[0]
     coords[:, 1] = coords[:, 1] / object.shape[1]
     # Find the top_left bottom_right bounding box coordinates
-    x_min, y_min = coords.min(axis=0)
-    x_max, y_max = coords.max(axis=0)
+    y_min, x_min = coords.min(axis=0)
+    y_max, x_max = coords.max(axis=0)
 
     # return specified label-type (corner coordinates) 
     if corner_coordinates:
@@ -217,6 +216,7 @@ def add_object_to_image(image,
                                      corner_coordinates=corner_coordinates)
    
     m, n = bbox_object.shape
+
     # Find all edge regions on graph such that no scaling will happen in these regions due to potential to be placed outside image
     edge_regions = list(range(1, grid_cols + 1))
     edge_regions += list(range(grid_cols + 1, (grid_rows - 1) * grid_cols , grid_cols))
@@ -370,8 +370,8 @@ def create_image(objects,
     added_objects (dict) : dict with all object class, true object coordinates on 
                            image, and normalized coordinates
     """
-    image = generate_noisy_image(size = image_size,
-                                 intensity = noise_intensity)
+    image = generate_noisy_image(image_size = image_size,
+                                 noise_intensity = noise_intensity)
     
     data_size = len(objects)
     scaling_options = np.arange(1, max_scaling + 0.125, 0.125)
@@ -391,7 +391,7 @@ def create_image(objects,
        
         index = np.random.randint(0, data_size)
         scaler = np.random.choice(scaling_options)
-        
+
         temp_image, object_to_add = add_object_to_image(image = copy.deepcopy(image),
                                                         region_of_interest = region,
                                                         object = objects[index],
@@ -420,10 +420,10 @@ def create_image(objects,
 
     return image, added_objects
 
-def add_bboxes_to_image_(image, 
-                         added_objects, 
-                         label_color_map,
-                         corner_coordinates=True):
+def add_bboxes_to_image(image, 
+                        added_objects, 
+                        label_color_map,
+                        corner_coordinates=True):
     """
     Definition
     Convert image to RGB and overlay bboxes colored by class
