@@ -8,7 +8,8 @@ from utils import *
 
 # Hardcoded GUI settings
 GUI_WIDTH = 1200
-GUI_HEIGHT = 600
+GUI_HEIGHT = 800
+RIGHT_GRID_ROWS = 4
 GUI_FONT_NAME = 'Microsoft JhengHei'
 INPUT_FIELDS_FONT_NAME = "Cascadia Code Light"
 FONT_SIZE = 12
@@ -83,10 +84,10 @@ def check_inputs(item_dict):
         error_str.set(curr_str + "One Coordinate System Checkbox must be selected.")
 
     if error_str.get() == "":
-        error_label.pack_forget()
+        error_label.grid_forget()
         return True
     else:
-        error_label.pack()
+        error_label.grid(row = RIGHT_GRID_ROWS // 2 - 1, column = 0, rowspan=2)
         return False
 
 # Function to update progress bar to 100% when generating previews
@@ -99,8 +100,6 @@ def generate_previews():
     img_frame.pack_forget()
     
     if corner_coordinates != last_corner_coordinates:
-        progress_var.set(0)
-        progress_str.set(f"Preprocessing MNIST Dataset")
         preprocess_mnist(corner_coordinates=corner_coordinates)
         last_corner_coordinates = corner_coordinates
 
@@ -126,17 +125,26 @@ def generate_previews():
                                     cmap,
                                     corner_coordinates=corner_coordinates)
 
+        image_box_dim = 512
+        m, n, _ = image.shape
+
+        scaler = image_box_dim / max(m, n)
+
         # Convert NumPy array to PIL Image
         img = Image.fromarray(image)
     
+        img = img.resize((int(n * scaler), int(m * scaler)), Image.NEAREST)
         # Convert the PIL Image to ImageTk object
         imgtk = ImageTk.PhotoImage(image=img)
 
-        img_frame.pack()
+        img_frame.grid(row=0, column=0, rowspan=RIGHT_GRID_ROWS-1, padx=20, pady=20)#pack(anchor='n')
 
         img_label.config(image=imgtk)
         img_label.image = imgtk
         img_label.pack()
+
+        objects_str.set("Added Numbers:\n" + added_objects_txt(added_objects))
+        objects_label.grid(row=RIGHT_GRID_ROWS-1, column=0, rowspan=1, padx=20, sticky='n')#pack(anchor='s')
 
         print(image.shape)
         print(added_objects)
@@ -145,6 +153,8 @@ def preprocess_mnist(corner_coordinates):
     global X, Y, mnist_ready
 
     progress_str.set(f"Preprocessing MNIST Dataset")
+    progress_var.set(0)
+    root.update_idletasks()
 
     X, Y = load_mnist()
 
@@ -155,8 +165,9 @@ def preprocess_mnist(corner_coordinates):
     for i in range(n):
         X_bboxes.append(find_bbox(X[i], 
                                   corner_coordinates=corner_coordinates))
-        if i % update_iter == 0 and i != 0:
-            progress_var.set(n / i)
+        if i % update_iter == 0:
+            progress_var.set(100 * i / n)
+            root.update_idletasks()
 
     X_bboxes = np.array(X_bboxes)
     Y = np.hstack([Y, X_bboxes])
@@ -194,9 +205,13 @@ if __name__ == "__main__":
     right_content_frame = tk.Frame(right_frame)
     right_content_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
+    right_content_frame.grid_columnconfigure(0, minsize=GUI_WIDTH / 2)
+    for row in range(RIGHT_GRID_ROWS):
+        right_content_frame.grid_rowconfigure(row, minsize=GUI_HEIGHT / RIGHT_GRID_ROWS, weight=1)
+
     # Create a label for the title in the left side
-    title_label = tk.Label(left_content_frame, text="MNIST Object Detection Dataset Generator", font=(GUI_FONT_NAME, FONT_SIZE+4, 'bold'))
-    title_label.pack(pady=20)  # Title with some padding
+    title_label = tk.Label(left_content_frame, text="MNIST Object Detection Dataset Generator", font=(GUI_FONT_NAME, FONT_SIZE+6, 'bold'))
+    title_label.pack(anchor='n', pady=[0,30])  # Title with some padding
 
     # Iterate through the dictionary and create a label and entry for each item on the same line
     for key, value in item_dict.items():
@@ -244,7 +259,7 @@ if __name__ == "__main__":
     folder_str = tk.StringVar(value="No folder location chosen\n")
 
     # Create the "Generate Image Previews" button
-    print_button = tk.Button(buttons_frame, text="Generate Image Previews", font=gui_font, command=generate_previews)
+    print_button = tk.Button(buttons_frame, text="Generate Image Preview", font=gui_font, command=generate_previews)
     print_button.pack(side=tk.LEFT, padx=10)  # Add padding below the button
 
     # Create a label to display the folder path
@@ -266,10 +281,13 @@ if __name__ == "__main__":
     error_label = tk.Label(right_content_frame, textvariable=error_str, justify='left', font=gui_font, borderwidth=1, bg="lightcoral", fg="black")
 
     # Create a frame to display the image
-    img_frame = tk.Frame(right_content_frame)#, width=image.shape[1], height=image.shape[0])
-
+    img_frame = tk.Frame(right_content_frame, width=GUI_HEIGHT-100, height=GUI_HEIGHT-100)#, width=image.shape[1], height=image.shape[0])
     # Create a label to place the image inside the frame
-    img_label = tk.Label(img_frame)
+    img_label = tk.Label(img_frame, bg='light gray')
+
+    # Create a label to progress bar information
+    objects_str = tk.StringVar(value='')
+    objects_label = tk.Label(right_content_frame, textvariable=objects_str, justify='left', font=input_font, bg='light gray')
 
     # Run the application
     root.mainloop()

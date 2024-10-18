@@ -454,3 +454,20 @@ def add_bboxes_to_image(image,
                               thickness=1)
     
     return image
+
+def added_objects_txt(added_objects):
+    """
+    Definition
+
+    Parameters:
+
+    Returns:
+    
+    """    
+    labels_list = []
+    for added_object in added_objects.values():
+        class_id = added_object['class']
+        a, b, c, d = added_object['bbox_norm']
+        labels_list.append(f"{class_id} {a:.6f} {b:.6f} {c:.6f} {d:.6f}")
+
+    return "\n".join(labels_list)
