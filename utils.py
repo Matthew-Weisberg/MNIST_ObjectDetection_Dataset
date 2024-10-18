@@ -227,12 +227,12 @@ def add_object_to_image(image,
         scale_value = (math.floor(min(region_x / n, region_y / m) * 20) / 10) - 0.5
     
     if scale_value != 1: # and region_of_interest not in edge_regions:
-        bbox_object = transform.rescale(bbox_object, 
-                                        scale_value,
-                                        mode = 'constant',
-                                        cval = 0,
-                                        anti_aliasing=False,
-                                        preserve_range=True)
+        bbox_object = transform.resize(bbox_object, 
+                                       (m * scale_value, n * scale_value),
+                                       mode = 'constant',
+                                       cval = 0,
+                                       anti_aliasing=False,
+                                       preserve_range=True)
     # Find new size of bbox object
     m, n = bbox_object.shape
     
@@ -468,6 +468,10 @@ def added_objects_txt(added_objects):
     for added_object in added_objects.values():
         class_id = added_object['class']
         a, b, c, d = added_object['bbox_norm']
-        labels_list.append(f"{class_id} {a:.6f} {b:.6f} {c:.6f} {d:.6f}")
+        bbox_data = [a, b, c, d]
+        bbox_data = [f'{x:.6f}' for x in bbox_data]
+        bbox_data = [class_id] + bbox_data
+        bbox_data = ['{: ^10}'.format(data) for data in bbox_data]
+        labels_list.append('|'.join(bbox_data))
 
     return "\n".join(labels_list)
